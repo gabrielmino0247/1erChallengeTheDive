@@ -1,6 +1,4 @@
-# crear un juego de gato y ratón con minimax
 
-#creamos un tablero de 6x6
 import random
 import sqlite3
 from datetime import datetime
@@ -274,8 +272,43 @@ def leer_movimiento_usuario(pos_actual):
         else:
             print("Tecla inválida. Usá W, A, S, D, Q, E, Z o C.")
 
+def mostrar_estadisticas():
+    import sqlite3
+    conexion = sqlite3.connect("partidas.db")
+    cursor = conexion.cursor()
 
-def jugar_partida_minimax():
+    print("\nEstadísticas de Partidas\n")
+
+    cursor.execute("SELECT COUNT(*) FROM partidas")
+    total = cursor.fetchone()[0]
+    print(f"Total de partidas registradas: {total}")
+
+    cursor.execute("SELECT resultado, COUNT(*) FROM partidas GROUP BY resultado")
+    for resultado, cantidad in cursor.fetchall():
+        jugador = "Ratón" if resultado == "raton" else "Gato"
+        print(f"Ganadas por {jugador}: {cantidad}")
+
+    cursor.execute("SELECT modo, resultado, COUNT(*) FROM partidas GROUP BY modo, resultado")
+    resumen = {}
+    for modo, resultado, count in cursor.fetchall():
+        if modo not in resumen:
+            resumen[modo] = {"gato": 0, "raton": 0}
+        resumen[modo][resultado] = count
+
+    print("\nResultados por modo:")
+    for modo, datos in resumen.items():
+        print(f" - {modo}: Gato = {datos.get('gato', 0)} | Ratón = {datos.get('raton', 0)}")
+
+    cursor.execute("SELECT AVG(turnos_totales) FROM partidas")
+    promedio_turnos = cursor.fetchone()[0]
+    print(f"\nPromedio de duración: {promedio_turnos:.2f} turnos")
+
+    conexion.close()
+    input("\nPresioná Enter para volver al menú principal...")
+
+
+
+def jugar_partida_minimax(modo):
     conexion = sqlite3.connect("partidas.db")
     cursor = conexion.cursor()
     registro_partida = [] 
@@ -284,16 +317,6 @@ def jugar_partida_minimax():
     juego = Juego(gato_pos, raton_pos)
 
     profundidad_busqueda = 4 # Puedes ajustar esto. Mayor profundidad = más "inteligente" pero más lento.
-
-    print("--- ¡Comienza el Laberinto del Gato y el Ratón con Minimax! ---")
-    print("--- MODOS DE JUEGO ---")
-    print("1. IA vs IA")
-    print("2. Usuario (ratón) vs IA (gato)")
-    print("3. Usuario (gato) vs IA (ratón)")
-
-    modo = ""
-    while modo not in ["1", "2", "3"]:
-        modo = input("Seleccioná el modo de juego (1, 2 o 3): ").strip()
     modo_juego = {
     "1": "IA vs IA",
     "2": "Usuario (ratón) vs IA",
@@ -363,6 +386,10 @@ def jugar_partida_minimax():
             while True:
                 desde = juego.gato  # 👈 guardamos posición antes de mover
                 nueva_pos = leer_movimiento_usuario(desde)
+                if juego.es_fin_de_juego():
+                        juego.imprimir_tablero()
+                        print("¡El gato ha atrapado al ratón! GANA EL GATO.")
+                        return
                 if juego.es_posicion_valida(nueva_pos):
                     juego.mover_gato(nueva_pos)
                     registro_partida.append({
@@ -415,6 +442,30 @@ def jugar_partida_minimax():
     conexion.commit()
     conexion.close()
 
+
+def menu_principal():
+    while True:
+        print("\n--- LABERINTO DEL GATO Y EL RATÓN ---")
+        print("1. IA vs IA")
+        print("2. Usuario (ratón) vs IA (gato)")
+        print("3. Usuario (gato) vs IA (ratón)")
+        print("4. Ver estadísticas")
+        print("5. Salir")
+
+        opcion = input("Seleccioná una opción (1 a 5): ").strip()
+
+        if opcion in ["1", "2", "3"]:
+            jugar_partida_minimax(opcion)
+        elif opcion == "4":
+            mostrar_estadisticas()
+        elif opcion == "5":
+            print("¡Gracias por jugar!")
+            break
+        else:
+            print("Opción inválida.")
+
+
+
 # Para ejecutar el juego cuando el script se corre
 if __name__ == "__main__":
-    jugar_partida_minimax()
+    menu_principal()
