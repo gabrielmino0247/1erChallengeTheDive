@@ -61,7 +61,7 @@ class Juego:
         self.raton = raton_pos
         # El tablero se crea en función del estado actual
         self.tablero = [['.' for _ in range(self.dimensiones[1])] for _ in range(self.dimensiones[0])]
-        self.obstaculos = self.generar_obstaculos(10)
+        self.obstaculos = self.generar_obstaculos(12)
         for obs in self.obstaculos:
             self.tablero[obs[0]][obs[1]] = '█'
         self.tablero[self.gato[0]][self.gato[1]] = 'G'
@@ -92,7 +92,7 @@ class Juego:
         return list(obstaculos)
 
     def max_turnos(self):
-        return ((self.dimensiones[0] + self.dimensiones[1]) // 2 )+3 #3 movimientos de gracia para que sea mas dinamico
+        return ((self.dimensiones[0] + self.dimensiones[1]) // 2 ) #3 movimientos de gracia para que sea mas dinamico
 
     def imprimir_tablero(self):
         for obs in self.obstaculos:
@@ -386,12 +386,16 @@ def jugar_partida_minimax(modo):
             while True:
                 desde = juego.gato  # 👈 guardamos posición antes de mover
                 nueva_pos = leer_movimiento_usuario(desde)
-                if juego.es_fin_de_juego():
-                        juego.imprimir_tablero()
-                        print("¡El gato ha atrapado al ratón! GANA EL GATO.")
-                        return
                 if juego.es_posicion_valida(nueva_pos):
                     juego.mover_gato(nueva_pos)
+                    if juego.es_fin_de_juego():
+                        juego.imprimir_tablero()
+                        print("¡El ratón ha sobrevivido! GANA EL RATÓN." if juego.es_raton_ganador() else "¡El gato ha atrapado al ratón! GANA EL GATO.")
+                        resultado = "gato"
+                        cursor.execute("""UPDATE partidas SET resultado=?, turnos_totales=? WHERE id=?""", (resultado, juego.turnos, id_partida))
+                        conexion.commit()
+                        conexion.close()
+                        return
                     registro_partida.append({
                         "turno": juego.turnos,
                         "jugador": "gato",
@@ -413,6 +417,14 @@ def jugar_partida_minimax(modo):
             desde = juego.gato
             juego.mover_gato(mov_gato, ruido=True)
             print(f"Gato se mueve a: {mov_gato}")
+            if juego.es_fin_de_juego():
+                juego.imprimir_tablero()
+                print("¡El ratón ha sobrevivido! GANA EL RATÓN." if juego.es_raton_ganador() else "¡El gato ha atrapado al ratón! GANA EL GATO.")
+                resultado = "raton" if juego.es_raton_ganador() else "gato"
+                cursor.execute("""UPDATE partidas SET resultado=?, turnos_totales=? WHERE id=?""", (resultado, juego.turnos, id_partida))
+                conexion.commit()
+                conexion.close()
+                return  
             registro_partida.append({
                 "turno": juego.turnos,
                 "jugador": "gato",
@@ -466,6 +478,6 @@ def menu_principal():
 
 
 
-# Para ejecutar el juego cuando el script se corre
+# para ejecutar el juego desde el menu
 if __name__ == "__main__":
     menu_principal()
