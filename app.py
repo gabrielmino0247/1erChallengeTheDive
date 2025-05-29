@@ -468,14 +468,14 @@ def jugar_partida_minimax(modo):
 #hacemos un menu para que sea mas facil de jugar y poder hacer las consultas en la bd sin hacer mucho rollo en el def del juego principal
 def menu_principal():
     while True:
-        '''
+        print("""
         \n--- LABERINTO DEL GATO Y EL RATÓN ---
         1. IA vs IA
         2. Usuario (ratón) vs IA (gato)
         3. Usuario (gato) vs IA (ratón)
         4. Ver estadísticas
         5. Salir
-        '''
+        """)
 
         opcion = input("\nSeleccioná una opción (1 a 5): ").strip()
 
