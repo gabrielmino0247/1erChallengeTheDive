@@ -375,7 +375,7 @@ def jugar_partida_minimax(modo):
                     print("Movimiento inválido. Intentalo de nuevo.")
 
         # IA juega como ratón
-        elif modo == "1":
+        else:
             print("Ratón (IA) pensando...")
             mov_raton = juego.obtener_mejor_movimiento_raton(profundidad_busqueda)
             if mov_raton is None:
@@ -432,7 +432,7 @@ def jugar_partida_minimax(modo):
                     print("Movimiento inválido. Intentalo de nuevo.")
         
         # IA juega como gato
-        elif modo == "1":
+        else:
             print("Gato (IA) pensando...")
             mov_gato = juego.obtener_mejor_movimiento_gato(profundidad_busqueda)
             if mov_gato is None:
@@ -468,14 +468,14 @@ def jugar_partida_minimax(modo):
 #hacemos un menu para que sea mas facil de jugar y poder hacer las consultas en la bd sin hacer mucho rollo en el def del juego principal
 def menu_principal():
     while True:
-        print("""
+        print('''
         \n--- LABERINTO DEL GATO Y EL RATÓN ---
         1. IA vs IA
         2. Usuario (ratón) vs IA (gato)
         3. Usuario (gato) vs IA (ratón)
         4. Ver estadísticas
         5. Salir
-        """)
+        ''')
 
         opcion = input("\nSeleccioná una opción (1 a 5): ").strip()
 
@@ -492,4 +492,5 @@ def menu_principal():
 
 
 # para ejecutar el juego desde el menu
-menu_principal()
+if __name__ == "__main__":
+    menu_principal()  # no se porque pero asi unicamente funciona bien, si lo pongo fuera del if no funciona como quiero
