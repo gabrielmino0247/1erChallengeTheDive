@@ -50,6 +50,8 @@ Más que un simple proyecto, esto fue una especie rompecabeza para entender el v
 ## Algunas dificultades que enfrentamos
 
 - Detectar y prevenir bucles de movimientos repetitivos sin romper el juego.
+- Entender el minimax, y como conectarlo con todo y hacer que los mejores movimientos no entren en conflicto y se elija random si hay varios buenos siempre y cuando minimicen la distancia.
+- Entender como aplicar la recursividad.
 - Imprimir el tablero en el momento correcto (ni antes ni después de que termine el juego).
 - Coordinar cuándo debe jugar el gato o el ratón, y quién debe tener prioridad para garantizar una experiencia justa en todos los modos.
 - Lograr un sistema de estadísticas útil sin depender de interfaces gráficas o librerías externas.
