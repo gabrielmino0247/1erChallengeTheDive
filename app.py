@@ -166,10 +166,10 @@ class Juego:
 
     def evaluar_estado(self):
         if self.es_gato_ganador():
-            return 1000  # Puntuación muy alta para el gato (maximizador)
+            return 1000  # Puntuación muy alta para el gato maximizador
         
         if self.es_raton_ganador():
-            return -1000 # Puntuación muy baja para el gato (victoria del ratón)
+            return -1000 # Puntuación muy baja para el gato, victoria del ratón
 
         '''Heurística para estados intermedios:
         Usamos la distancia de Manhattan: abs(x1-x2) + abs(y1-y2)
@@ -185,7 +185,7 @@ class Juego:
         if estado.es_fin_de_juego() or profundidad == 0:
             return estado.evaluar_estado()
 
-        #2 Turno del Jugador Maximizador (Gato)
+        #2 Turno del Jugador Maximizador Gato
         if es_turno_maximizador: # El gato quiere maximizar la puntuación
             mejor_valor = float('-inf') # Inicializar con el valor más bajo posible
             
@@ -200,8 +200,8 @@ class Juego:
                 mejor_valor = max(mejor_valor, valor) # El gato elige el movimiento que da la puntuación más alta
             return mejor_valor
 
-        #3 Turno del Jugador Minimizador (Ratón)
-        else: # El ratón quiere minimizar la puntuación (del gato)
+        #3 Turno del Jugador Minimizador Ratón
+        else: # El ratón quiere minimizar la puntuación del gato
             mejor_valor = float('inf') # Inicializar con el valor más alto posible
             
             # Iterar sobre todos los movimientos posibles del ratón
@@ -210,7 +210,7 @@ class Juego:
                 nuevo_estado = estado.copiar_estado()
                 nuevo_estado.mover_raton(mov_raton, ruido = True)
                 
-                # Llamada recursiva para el turno del gato (maximizador)
+                # Llamada recursiva para el turno del gato maximizador
                 valor = self.minimax(nuevo_estado, profundidad - 1, True)
                 mejor_valor = min(mejor_valor, valor) # El ratón elige el movimiento que da la puntuación más baja al gato
             return mejor_valor
@@ -458,7 +458,7 @@ def jugar_partida_minimax(modo):
         
         # if juego.es_fin_de_juego():
         #     juego.imprimir_tablero()
-        #     print("¡El gato ha atrapado al ratón! GANA EL GATO." if juego.es_gato_ganador() else "¡El ratón ha sobrevivido! GANA EL RATÓN.")
+        #     print("El gato ha atrapado al ratón! GANA EL GATO." if juego.es_gato_ganador() else "El ratón ha sobrevivido! GANA EL RATÓN.")
         #     break
 
         
