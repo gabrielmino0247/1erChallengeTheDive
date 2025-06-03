@@ -181,80 +181,53 @@ class Juego:
         return -distancia
     
     def minimax(self, estado, profundidad, es_turno_maximizador):
-        #1 Casos Base: Si el juego ha terminado o hemos llegado a la profundidad límite
         if estado.es_fin_de_juego() or profundidad == 0:
             return estado.evaluar_estado()
 
-        #2 Turno del Jugador Maximizador Gato
-        if es_turno_maximizador: # El gato quiere maximizar la puntuación
-            mejor_valor = float('-inf') # Inicializar con el valor más bajo posible
-            
-            # Iterar sobre todos los movimientos posibles del gato
-            for mov_gato in estado.obtener_posibles_movimientos(estado.gato, es_raton=False):
-                # Crear un nuevo estado hipotético aplicando el movimiento del gato
-                nuevo_estado = estado.copiar_estado()
-                nuevo_estado.mover_gato(mov_gato, ruido = True)
-                
-                # Llamada recursiva para el turno del ratón (minimizador)
-                valor = self.minimax(nuevo_estado, profundidad - 1, False)
-                mejor_valor = max(mejor_valor, valor) # El gato elige el movimiento que da la puntuación más alta
-            return mejor_valor
+        es_raton = not es_turno_maximizador  # True si le toca al ratón
 
-        #3 Turno del Jugador Minimizador Ratón
-        else: # El ratón quiere minimizar la puntuación del gato
-            mejor_valor = float('inf') # Inicializar con el valor más alto posible
-            
-            # Iterar sobre todos los movimientos posibles del ratón
-            for mov_raton in estado.obtener_posibles_movimientos(estado.raton, es_raton=True):
-                # Crear un nuevo estado hipotético aplicando el movimiento del ratón
-                nuevo_estado = estado.copiar_estado()
-                nuevo_estado.mover_raton(mov_raton, ruido = True)
-                
-                # Llamada recursiva para el turno del gato maximizador
-                valor = self.minimax(nuevo_estado, profundidad - 1, True)
-                mejor_valor = min(mejor_valor, valor) # El ratón elige el movimiento que da la puntuación más baja al gato
-            return mejor_valor
+        mejor_valor = float('inf') if es_raton else float('-inf')
+        posicion = estado.raton if es_raton else estado.gato
+        posibles_movs = estado.obtener_posibles_movimientos(posicion, es_raton)
+
+        for mov in posibles_movs:
+            nuevo_estado = estado.copiar_estado()
+            mover = nuevo_estado.mover_raton if es_raton else nuevo_estado.mover_gato
+            mover(mov, ruido=True)
+
+            valor = self.minimax(nuevo_estado, profundidad - 1, not es_turno_maximizador)
+
+            if es_raton:
+                mejor_valor = min(mejor_valor, valor)
+            else:
+                mejor_valor = max(mejor_valor, valor)
+
+        return mejor_valor
 
     
-    def obtener_mejor_movimiento_gato(self, profundidad):
-        mejor_valor = float('-inf')
-        mejores_movimientos = [] # cambiar a una lista para tener múltiples movimientos
-        
-        for mov_gato in self.obtener_posibles_movimientos(self.gato, es_raton=False):
-            estado_despues_mov_gato = self.copiar_estado()
-            estado_despues_mov_gato.mover_gato(mov_gato, ruido=True)
-            
-            valor = self.minimax(estado_despues_mov_gato, profundidad - 1, False)
-            
-            if valor > mejor_valor:
+    def obtener_mejor_movimiento(self, profundidad, es_raton):
+        mejor_valor = float('inf') if es_raton else float('-inf')
+        mejores_movimientos = []
+
+        posicion = self.raton if es_raton else self.gato
+        posibles_movs = self.obtener_posibles_movimientos(posicion, es_raton)
+
+        for mov in posibles_movs:
+            nuevo_estado = self.copiar_estado()
+            if es_raton:
+                nuevo_estado.mover_raton(mov, ruido=True)
+                valor = self.minimax(nuevo_estado, profundidad - 1, True)
+            else:
+                nuevo_estado.mover_gato(mov, ruido=True)
+                valor = self.minimax(nuevo_estado, profundidad - 1, False)
+            if (es_raton and valor < mejor_valor) or (not es_raton and valor > mejor_valor):
                 mejor_valor = valor
-                mejores_movimientos = [mov_gato] # Si encontramos uno mejor, reiniciamos la lista
+                mejores_movimientos = [mov]
             elif valor == mejor_valor:
-                mejores_movimientos.append(mov_gato) # Si encontramos uno igual de bueno, lo añadimos
-        
-        if mejores_movimientos:
-            return random.choice(mejores_movimientos) # Elegir uno al azar de los mejores
-        return None # No hay movimientos posibles
+                mejores_movimientos.append(mov)
+                
+        return random.choice(mejores_movimientos) if mejores_movimientos else None
 
-    def obtener_mejor_movimiento_raton(self, profundidad):
-        mejor_valor = float('inf')
-        mejores_movimientos = [] # Cambiar a una lista para tener múltiples movimientos
-
-        for mov_raton in self.obtener_posibles_movimientos(self.raton, es_raton=True):
-            estado_despues_mov_raton = self.copiar_estado()
-            estado_despues_mov_raton.mover_raton(mov_raton, ruido=True)
-
-            valor = self.minimax(estado_despues_mov_raton, profundidad - 1, True)
-
-            if valor < mejor_valor: # El ratón busca minimizar la puntuación del gato
-                mejor_valor = valor
-                mejores_movimientos = [mov_raton]
-            elif valor == mejor_valor:
-                mejores_movimientos.append(mov_raton)
-        
-        if mejores_movimientos:
-            return random.choice(mejores_movimientos) # Elegir uno al azar de los mejores
-        return None # No hay movimientos posibles
 
 def leer_movimiento_usuario(pos_actual):
     teclas = {
@@ -377,7 +350,7 @@ def jugar_partida_minimax(modo):
         # IA juega como ratón
         else:
             print("Ratón (IA) pensando...")
-            mov_raton = juego.obtener_mejor_movimiento_raton(profundidad_busqueda)
+            mov_raton = juego.obtener_mejor_movimiento(profundidad_busqueda,True)
             if mov_raton is None:
                 print("El ratón no tiene movimientos válidos. ¡El gato ha ganado!")
                 break
@@ -434,7 +407,7 @@ def jugar_partida_minimax(modo):
         # IA juega como gato
         else:
             print("Gato (IA) pensando...")
-            mov_gato = juego.obtener_mejor_movimiento_gato(profundidad_busqueda)
+            mov_gato = juego.obtener_mejor_movimiento(profundidad_busqueda,False)
             if mov_gato is None:
                 print("El gato no tiene movimientos válidos. ¡El ratón ha escapado!")
                 break
